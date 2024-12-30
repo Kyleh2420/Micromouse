@@ -40,6 +40,21 @@ int currentRow = 0;
 int orient = 0;    //0 = N, 1 = E, 2 = S, 3 = W
 int startLorR = 0;      //0 if starting on the left, 1 if starting on the right
 
+//Set up the array used to store the walls
+int mazeWalls[MAZESIZE][MAZESIZE] = {0};
+
+//Used to determine if we have visited the cell or not
+bool MAZEVISIT[MAZESIZE][MAZESIZE] = {false};
+
+//Maze weights - will be used to dictate the weight of a given cell (As in, how far it is from the center)
+int MAZEWEIGHT[MAZESIZE][MAZESIZE] = {0};
+
+//This array will be used to translate the direction. 
+int relativeToAbsolute[4][3] = {{WEST, NORTH, EAST},
+                                {NORTH, EAST, SOUTH},
+                                {EAST, SOUTH, WEST},
+                                {SOUTH, WEST, NORTH}};
+
 void log(const std::string& text) {
     std::cerr << text << std::endl;
 }
@@ -54,21 +69,6 @@ int main(int argc, char* argv[]) {
     API::setText(0, 0, "abc");
 
     //MAZESIZE = API::mazeHeight();
-
-    //Set up the array used to store the walls
-    int mazeWalls[MAZESIZE][MAZESIZE] = {0};
-
-    //Used to determine if we have visited the cell or not
-    bool MAZEVISIT[MAZESIZE][MAZESIZE] = {false};
-
-    //Maze weights - will be used to dictate the weight of a given cell (As in, how far it is from the center)
-    int MAZEWEIGHT[MAZESIZE][MAZESIZE] = {0};
-
-    //This array will be used to translate the direction. 
-    int relativeToAbsolute[4][3] = {{WEST, NORTH, EAST},
-                                    {NORTH, EAST, SOUTH},
-                                    {EAST, SOUTH, WEST},
-                                    {SOUTH, WEST, NORTH}};
 
     //Set up the weights of each of the cells. Upon setup, each cell is counted as if there are no walls in the way
     int tmp = MAZESIZE;
@@ -154,34 +154,34 @@ int main(int argc, char* argv[]) {
 
         //Step 3: Perform Flood Fill on the updated maze. Store into mazeWeights
 
-        /*
-            Left Wall Following Code
+        
+            // Left Wall Following Code
             //if there is no wall left, turn left
-        if (!(mazeWalls[currentRow][currentCol] & (1 << 3-relativeToAbsolute[orient][LEFT]))) {
-            API::turnLeft();
-            log("Turning Left");
-            //Saturation Detection
-            if (orient == 0) {
-                orient = 3;
-            } else {
-                orient -= 1;   //Rotate left on the orient
-            }
-        }
+        // if (!(mazeWalls[currentRow][currentCol] & (1 << 3-relativeToAbsolute[orient][LEFT]))) {
+        //     API::turnLeft();
+        //     // log("Turning Left");
+        //     //Saturation Detection
+        //     if (orient == 0) {
+        //         orient = 3;
+        //     } else {
+        //         orient -= 1;   //Rotate left on the orient
+        //     }
+        // }
 
-        //If there is a wall in front, turn right
-        while (mazeWalls[currentRow][currentCol] & (1 << 3-relativeToAbsolute[orient][FRONT])) {
-            API::turnRight();
-            log("Turning Right");
+        // //If there is a wall in front, turn right
+        // while (mazeWalls[currentRow][currentCol] & (1 << 3-relativeToAbsolute[orient][FRONT])) {
+        //     API::turnRight();
+        //     // log("Turning Right");
 
-            //Saturation Detection
-            if (orient == 3) {
-                orient = 0;
-            } else {
-                orient += 1;   //Rotate right on the orient
-            }
+        //     //Saturation Detection
+        //     if (orient == 3) {
+        //         orient = 0;
+        //     } else {
+        //         orient += 1;   //Rotate right on the orient
+        //     }
             
-        }
-        */
+        // }
+        
 
        //Perform flood fill with the current knowledge of the walls. 
        //Loop through the immediate 4 cells, going NESW (Relative). Note it's weight. If there is a wall, weight = INT_MAX

@@ -86,6 +86,7 @@ void turnRight() {
 }
 
 void moveFwd() {
+    // cerr << "Old position: " << currentRow << " " << currentCol << endl;
     API::moveForward();
     switch(orient) {
         case 0: 
@@ -105,6 +106,7 @@ void moveFwd() {
             currentCol--;
             break;
     }
+    // cerr << "New position: " << currentRow << " " << currentCol << endl;
 }
 
 //Performs flood fill on the given global array mazeWalls and mazeWeight
@@ -284,30 +286,32 @@ int main(int argc, char* argv[]) {
         
         //Step 2: Store wall information to mazeWalls array
         mazeWalls[currentRow][currentCol] = readCurrentWalls;     
+        cerr << "Step 2 position: " << currentRow << " " << currentCol << endl;
 
         //                                                                         _
         //Also update the neighboring cell (They must share a same wall. Thus, if |X|Y)
-        //If we are in X, we must also update Y, since they share a common wall   
+        //If we are in X, we must also update Y, since they share a scommon wall  
+        //Only do this as long as we are not on the edge of the map 
         //North of the cell
-        if (mazeWalls[currentRow][currentCol] & (1 << 3-NORTH)) {  //If there is a wall north
+        if (mazeWalls[currentRow][currentCol] & (1 << 3-NORTH) && currentRow != 0) {  //If there is a wall north
             mazeWalls[currentRow-1][currentCol] |= (1 << 3-SOUTH);
+            cerr << "North wall found" << endl;
         }
+
+        cerr << "North Check position: " << currentRow << " " << currentCol << endl;
 
         //East of the cell
-        if (mazeWalls[currentRow][currentCol] & (1 << 3-EAST)) {  //If there is a wall east
+        if (mazeWalls[currentRow][currentCol] & (1 << 3-EAST) && currentCol != MAZESIZE-1) {  //If there is a wall east
             mazeWalls[currentRow][currentCol+1] |= (1 << 3-WEST);
         }
-
         //South of the Cell
-        if (mazeWalls[currentRow][currentCol] & (1 << 3-SOUTH)) {  //If there is a wall south
+        if (mazeWalls[currentRow][currentCol] & (1 << 3-SOUTH) && currentRow != MAZESIZE-1) {  //If there is a wall south
             mazeWalls[currentRow+1][currentCol] |= (1 << 3-NORTH);
         }
-
         //West of the cell
-        if (mazeWalls[currentRow][currentCol] & (1 << 3-WEST)) {  //If there is a wall west
+        if (mazeWalls[currentRow][currentCol] & (1 << 3-WEST) && currentCol != 0) {  //If there is a wall west
             mazeWalls[currentRow][currentCol-1] |= (1 << 3-EAST);
         }
-        
         //Debug
         cerr << "orient: " << orient << " Row: " << currentRow << " Col: " << currentCol << endl;
         for (int i = 0; i < MAZESIZE; i++) {
@@ -328,6 +332,8 @@ int main(int argc, char* argv[]) {
 
         //Debug
         cerr << "-------------\nWeights Graph" << endl;
+
+        cerr << "Current position: " << currentRow << " " << currentCol << endl;
         for (int i = 0; i < MAZESIZE; i++) {
             for (int j = 0; j < MAZESIZE; j++) {
                 cerr << mazeWeight[i][j] << " ";
@@ -351,7 +357,7 @@ int main(int argc, char* argv[]) {
             cerr << "Not Selected: [" << currentRow-1 << "] [" << currentCol << "] with weight: " << mazeWeight[currentRow-1][currentCol] << " and direction: " << NORTH << endl;
         }
         // cerr << "Is there a wall east (selecting): " << mazeWalls[tmpRow][tmpCol] << endl;
-        if (mazeWeight[currentRow][currentCol+1] < smallestAccessable && currentCol != MAZESIZE && !(mazeWalls[currentRow][currentCol] & (1 << 3-EAST))) {
+        if (mazeWeight[currentRow][currentCol+1] < smallestAccessable && currentCol != MAZESIZE-1 && !(mazeWalls[currentRow][currentCol] & (1 << 3-EAST))) {
             //East
             smallestAccessable = mazeWeight[currentRow][currentCol+1];
             tmpRow = currentRow;
@@ -361,7 +367,7 @@ int main(int argc, char* argv[]) {
             cerr << "Not Selected: [" << currentRow << "] [" << currentCol+1 << "] with weight: " << mazeWeight[currentRow][currentCol+1] << " and direction: " << EAST << endl;
         }
         
-        if (mazeWeight[currentRow+1][currentCol] < smallestAccessable && currentRow != MAZESIZE && !(mazeWalls[currentRow][currentCol] & (1 << 3-SOUTH))) {
+        if (mazeWeight[currentRow+1][currentCol] < smallestAccessable && currentRow != MAZESIZE-1 && !(mazeWalls[currentRow][currentCol] & (1 << 3-SOUTH))) {
             //South
             smallestAccessable = mazeWeight[currentRow+1][currentCol];
             tmpRow = currentRow+1;

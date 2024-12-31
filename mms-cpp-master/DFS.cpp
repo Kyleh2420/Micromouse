@@ -140,7 +140,7 @@ void floodFill() {
         unvisitedRow.pop();
         unvisitedCol.pop();
 
-    //     cerr << "\n----------------\nCurrent Weights\n";
+    // cerr << "\n----------------\nCurrent Weights\n";
     // // Debug
     // for (int i = 0; i < MAZESIZE; i++) {
     //     for (int j = 0; j < MAZESIZE; j++) {
@@ -148,6 +148,14 @@ void floodFill() {
     //     }
     //     cerr << endl;
     // }
+
+    // cerr << "\n----------------\nCurrent Walls\n";
+    // for (int i = 0; i < MAZESIZE; i++) {
+    //         for (int j = 0; j < MAZESIZE; j++) {
+    //             cerr << mazeWalls[i][j] << " ";
+    //         }
+    //         cerr << endl;
+    //     }
 
         //Check NESW neighbors to see if they are accessable. If they are accessable and INT_MAX, then change weight to cellVal+1
         //North of the cell
@@ -333,38 +341,47 @@ int main(int argc, char* argv[]) {
         int tmpCol = currentCol;
         int direction;
 
-        if (mazeWeight[currentRow-1][currentCol] < smallestAccessable && currentRow != 0 && !(mazeWalls[tmpRow][tmpCol] & (1 << 3-NORTH))) {
+        if (mazeWeight[currentRow-1][currentCol] < smallestAccessable && currentRow != 0 && !(mazeWalls[currentRow][currentCol] & (1 << 3-NORTH))) {
             //North
             smallestAccessable = mazeWeight[currentRow-1][currentCol];
             tmpRow = currentRow-1;
             tmpCol = currentCol;
             direction = NORTH;
+        } else {
+            cerr << "Not Selected: [" << currentRow-1 << "] [" << currentCol << "] with weight: " << mazeWeight[currentRow-1][currentCol] << " and direction: " << NORTH << endl;
         }
         // cerr << "Is there a wall east (selecting): " << mazeWalls[tmpRow][tmpCol] << endl;
-        if (mazeWeight[currentRow][currentCol+1] < smallestAccessable && currentCol != MAZESIZE && !(mazeWalls[tmpRow][tmpCol] & (1 << 3-EAST))) {
+        if (mazeWeight[currentRow][currentCol+1] < smallestAccessable && currentCol != MAZESIZE && !(mazeWalls[currentRow][currentCol] & (1 << 3-EAST))) {
             //East
             smallestAccessable = mazeWeight[currentRow][currentCol+1];
             tmpRow = currentRow;
             tmpCol = currentCol+1;
             direction = EAST;
+        } else {
+            cerr << "Not Selected: [" << currentRow << "] [" << currentCol+1 << "] with weight: " << mazeWeight[currentRow][currentCol+1] << " and direction: " << EAST << endl;
         }
-
-        if (mazeWeight[currentRow-1][currentCol] < smallestAccessable && currentRow != MAZESIZE && !(mazeWalls[tmpRow][tmpCol] & (1 << 3-SOUTH))) {
+        
+        if (mazeWeight[currentRow+1][currentCol] < smallestAccessable && currentRow != MAZESIZE && !(mazeWalls[currentRow][currentCol] & (1 << 3-SOUTH))) {
             //South
             smallestAccessable = mazeWeight[currentRow+1][currentCol];
             tmpRow = currentRow+1;
             tmpCol = currentCol;
             direction = SOUTH;
+        } else {
+            cerr << "Not Selected: [" << currentRow+1 << "] [" << currentCol << "] with weight: " << mazeWeight[currentRow+1][currentCol] << " and direction: " << SOUTH << endl;
         }
-
-        if (mazeWeight[currentRow][currentCol-1] < smallestAccessable && currentCol != 0 && !(mazeWalls[tmpRow][tmpCol] & (1 << 3-WEST))) {
+        
+        if (mazeWeight[currentRow][currentCol-1] < smallestAccessable && currentCol != 0 && !(mazeWalls[currentRow][currentCol] & (1 << 3-WEST))) {
             //West
             smallestAccessable = mazeWeight[currentRow][currentCol-1];
             tmpRow = currentRow;
             tmpCol = currentCol-1;
             direction = WEST;
+        } else {
+            cerr << "Not Selected: [" << currentRow << "] [" << currentCol-1 << "] with weight: " << mazeWeight[currentRow][currentCol-1] << " and direction: " << WEST << endl;
         }
         
+        // cerr << "Current Cell [" << currentRow << "] [" << currentCol << "has walls: " << endl;
         cerr << "Selection: [" << tmpRow << "] [" << tmpCol << "] with weight: " << smallestAccessable << " and direction: " << direction << endl;
 
     

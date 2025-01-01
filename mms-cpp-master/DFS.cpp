@@ -110,7 +110,7 @@ void moveFwd() {
 }
 
 //Performs flood fill on the given global array mazeWalls and mazeWeight
-void floodFill() {
+void floodFill(int targetRow, int targetCol) {
 
     int tmpRow, tmpCol;
 
@@ -129,11 +129,11 @@ void floodFill() {
     }
 
     //Set the goal cell to 0
-    mazeWeight[goalRow][goalCol] = 0;
+    mazeWeight[targetRow][targetCol] = 0;
 
     //Push the first row/col pair to the queue to process
-    unvisitedRow.push(goalRow);
-    unvisitedCol.push(goalCol);
+    unvisitedRow.push(targetRow);
+    unvisitedCol.push(targetCol);
 
     while(!unvisitedCol.empty()) {
         //Pop from the queue. Set all neighbors that are INT_MAX to cell val+1
@@ -258,11 +258,16 @@ int main(int argc, char* argv[]) {
         currentRow = 0;
     }
 
-    floodFill();
+    int targetRow = goalRow;
+    int targetCol = goalCol;
+    bool centerFound = false;
+    bool fastRun = false;
+    int centerEntranceRow = 0;
+    int centerEntranceCol = 0;
+
+    floodFill(targetRow, targetCol);
 
     while (true) {
-        
-
         //Step 1: Read the walls for the current Cell
         //Set this to 0 if we're overwriting everything. 
         //For testing purposes right now (And to not crash my floodfill algorithm, we just read-mod-write instead of overwriting)
@@ -295,10 +300,10 @@ int main(int argc, char* argv[]) {
         //North of the cell
         if (mazeWalls[currentRow][currentCol] & (1 << 3-NORTH) && currentRow != 0) {  //If there is a wall north
             mazeWalls[currentRow-1][currentCol] |= (1 << 3-SOUTH);
-            cerr << "North wall found" << endl;
+            // cerr << "North wall found" << endl;
         }
 
-        cerr << "North Check position: " << currentRow << " " << currentCol << endl;
+        // cerr << "North Check position: " << currentRow << " " << currentCol << endl;
 
         //East of the cell
         if (mazeWalls[currentRow][currentCol] & (1 << 3-EAST) && currentCol != MAZESIZE-1) {  //If there is a wall east
@@ -328,7 +333,7 @@ int main(int argc, char* argv[]) {
 */
 
         //Step 3: Perform Flood Fill on the updated maze. Store into mazeWeights
-        floodFill();
+        floodFill(targetRow, targetCol);
 
         //Debug
         cerr << "-------------\nWeights Graph" << endl;
@@ -354,7 +359,7 @@ int main(int argc, char* argv[]) {
             tmpCol = currentCol;
             direction = NORTH;
         } else {
-            cerr << "Not Selected: [" << currentRow-1 << "] [" << currentCol << "] with weight: " << mazeWeight[currentRow-1][currentCol] << " and direction: " << NORTH << endl;
+            // cerr << "Not Selected: [" << currentRow-1 << "] [" << currentCol << "] with weight: " << mazeWeight[currentRow-1][currentCol] << " and direction: " << NORTH << endl;
         }
         // cerr << "Is there a wall east (selecting): " << mazeWalls[tmpRow][tmpCol] << endl;
         if (mazeWeight[currentRow][currentCol+1] < smallestAccessable && currentCol != MAZESIZE-1 && !(mazeWalls[currentRow][currentCol] & (1 << 3-EAST))) {
@@ -364,7 +369,7 @@ int main(int argc, char* argv[]) {
             tmpCol = currentCol+1;
             direction = EAST;
         } else {
-            cerr << "Not Selected: [" << currentRow << "] [" << currentCol+1 << "] with weight: " << mazeWeight[currentRow][currentCol+1] << " and direction: " << EAST << endl;
+            // cerr << "Not Selected: [" << currentRow << "] [" << currentCol+1 << "] with weight: " << mazeWeight[currentRow][currentCol+1] << " and direction: " << EAST << endl;
         }
         
         if (mazeWeight[currentRow+1][currentCol] < smallestAccessable && currentRow != MAZESIZE-1 && !(mazeWalls[currentRow][currentCol] & (1 << 3-SOUTH))) {
@@ -374,7 +379,7 @@ int main(int argc, char* argv[]) {
             tmpCol = currentCol;
             direction = SOUTH;
         } else {
-            cerr << "Not Selected: [" << currentRow+1 << "] [" << currentCol << "] with weight: " << mazeWeight[currentRow+1][currentCol] << " and direction: " << SOUTH << endl;
+            // cerr << "Not Selected: [" << currentRow+1 << "] [" << currentCol << "] with weight: " << mazeWeight[currentRow+1][currentCol] << " and direction: " << SOUTH << endl;
         }
         
         if (mazeWeight[currentRow][currentCol-1] < smallestAccessable && currentCol != 0 && !(mazeWalls[currentRow][currentCol] & (1 << 3-WEST))) {
@@ -384,7 +389,7 @@ int main(int argc, char* argv[]) {
             tmpCol = currentCol-1;
             direction = WEST;
         } else {
-            cerr << "Not Selected: [" << currentRow << "] [" << currentCol-1 << "] with weight: " << mazeWeight[currentRow][currentCol-1] << " and direction: " << WEST << endl;
+            // cerr << "Not Selected: [" << currentRow << "] [" << currentCol-1 << "] with weight: " << mazeWeight[currentRow][currentCol-1] << " and direction: " << WEST << endl;
         }
         
         // cerr << "Current Cell [" << currentRow << "] [" << currentCol << "has walls: " << endl;
@@ -403,13 +408,41 @@ int main(int argc, char* argv[]) {
         cerr << "-------------\nNext Location" << endl;
         //Step 6: Move Forward
         moveFwd();
-        
+
+        //If we ever enter into the goal matrix (The center 4 squares), then we have reached the goal.
+        //If we have reached the goal, then we should break out of the loop and return to the start
+        if ((currentRow == MAZESIZE/2-1 || currentRow == MAZESIZE/2) && (currentCol == MAZESIZE/2-1 || currentCol == MAZESIZE/2) && centerFound == false) {
+            cerr << "Center Found" << endl;
+            centerFound = true;
+
+            centerEntranceRow = currentRow;
+            centerEntranceCol = currentCol;
+            cerr << "Center Entrance: " << centerEntranceRow << " " << centerEntranceCol << endl;
+
+            //TO DO: SET THE WALLS OF THE GOAL TO BE CLOSED
+            //WE KNOW WHERE THE ENTRENCE IS, SO WE CAN CLOSE THE WALLS
+
+            targetRow = MAZESIZE-1;
+            targetCol = 0;            
+        }
+
+        if (currentRow == centerEntranceRow && currentCol == centerEntranceCol && fastRun == true) {
+            cerr << "Fastest Found" << endl;
+            break;        
+        }
+
+        if (currentRow == MAZESIZE-1 && currentCol == 0 && centerFound == true) {
+            cerr << "Returned to" << endl;
+            targetRow = centerEntranceRow;
+            targetCol = centerEntranceCol;
+            fastRun = true;
+
+        }
 
        //Perform flood fill with the current knowledge of the walls. 
        //Loop through the immediate 4 cells, going NESW (Relative). Note it's weight. If there is a wall, weight = INT_MAX
        //Select the cell with the lowest weight
        //Turn into the direction. Proceed with the next move statement.
-
-        
     }
+
 }
